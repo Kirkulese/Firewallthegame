@@ -43,6 +43,11 @@ class level1paddle(object):
         self.backHeight = backHeight
         self.health = health
 
+    #create method to check if contact back area for destroy
+    def checkDestroy(self):
+        if self.x + self.frontWidth <= basicBall.x <= self.x + self.frontWidth + self.backWidth and self.y <= basicBall.y <= self.y + self.backHeight:
+            self.health = 0
+
 ##class for the ball object needs a radius
 class ball(object):
     def __init__(self, x, y, radius, speedx, speedy):
@@ -66,6 +71,8 @@ class ball(object):
         elif self.x == midWall.x and midWall.y < self.y < midWall.y + midWall.frontHeight:
             self.speedx = self.speedx * -1
         elif self.x == botWall.x and botWall.y < self.y < botWall.y + botWall.frontHeight:
+            self.speedx = self.speedx * -1
+        elif self.x >= 888 - self.radius:
             self.speedx = self.speedx * -1
 
         ##collide with player paddle
@@ -121,16 +128,32 @@ while run:
         pygame.draw.circle(win, (0, 255,0), (basicBall.x, basicBall.y), basicBall.radius, 0)
 
         ##draw firewalls
-        pygame.draw.rect(win, (0, 255, 0), (topWall.x, topWall.y, topWall.frontWidth, topWall.frontHeight))
-        pygame.draw.rect(win, (255, 0, 0), (topWall.frontWidth + topWall.x, topWall.y, topWall.backWidth, topWall.backHeight))
-        pygame.draw.rect(win, (0, 255, 0), (midWall.x, midWall.y, midWall.frontWidth, midWall.frontHeight))
-        pygame.draw.rect(win, (255, 0, 0), (midWall.frontWidth + midWall.x, midWall.y, midWall.backWidth, midWall.backHeight))
-        pygame.draw.rect(win, (0, 255, 0), (botWall.x, botWall.y, botWall.frontWidth, botWall.frontHeight))
-        pygame.draw.rect(win, (255, 0, 0), (botWall.frontWidth + botWall.x, botWall.y, botWall.backWidth, botWall.backHeight))
+        if topWall.health > 0:
+            pygame.draw.rect(win, (0, 255, 0), (topWall.x, topWall.y, topWall.frontWidth, topWall.frontHeight))
+            pygame.draw.rect(win, (255, 0, 0), (topWall.frontWidth + topWall.x, topWall.y, topWall.backWidth, topWall.backHeight))
+        else:
+            pass
+
+        if midWall.health > 0:
+            pygame.draw.rect(win, (0, 255, 0), (midWall.x, midWall.y, midWall.frontWidth, midWall.frontHeight))
+            pygame.draw.rect(win, (255, 0, 0), (midWall.frontWidth + midWall.x, midWall.y, midWall.backWidth, midWall.backHeight))
+        else:
+            pass
+
+        if botWall.health > 0:
+            pygame.draw.rect(win, (0, 255, 0), (botWall.x, botWall.y, botWall.frontWidth, botWall.frontHeight))
+            pygame.draw.rect(win, (255, 0, 0), (botWall.frontWidth + botWall.x, botWall.y, botWall.backWidth, botWall.backHeight))
+        else:
+            pass
+
+        topWall.checkDestroy()
+        midWall.checkDestroy()
+        botWall.checkDestroy()
 
         #draw bounding walls
         pygame.draw.rect(win, (0, 255, 0), (100, 5, 800, 5))
         pygame.draw.rect(win, (0, 255, 0), (100, 490, 800, 5))
+        pygame.draw.rect(win, (0, 255, 0), (900, 5, 5, 490))
         ##refresh the game to display things drawn
         pygame.display.update()
 
