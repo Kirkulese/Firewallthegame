@@ -69,18 +69,18 @@ class ball(object):
             self.speedx = self.speedx * -1
 
         ##collide with player paddle
-        if self.x + self.radius == player.x + player.width and player.y <= self.y <= player.y + player.height:
+        if self.x - self.radius <= player.x + player.width and player.y <= self.y <= player.y + player.height:
             self.speedx = self.speedx * -1
 
         ##set initial movement
-        self.x += self.speedx
-        #self.y += self.speedy
+        self.x += self.speedx * -1
+        self.y += self.speedy
 ##create player
-player = paddle(150, 220, 10, 50, 100, 15)
+player = paddle(150, 220, 10, 100, 100, 15)
 
 ##create basic ball
 
-basicBall = ball(500, 135, 8, 10, 10)
+basicBall = ball(500, 225, 8, 10, 8)
 
 ##the game's main loop
 run = True
