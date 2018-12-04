@@ -1,0 +1,238 @@
+import pygame
+import random
+
+
+pygame.init()
+
+##Define window for display and name it
+screenHeight = 500
+screenWidth = 1000
+win = pygame.display.set_mode((screenWidth, screenHeight))
+pygame.display.set_caption("Firewall")
+
+#get the clock ready
+clock = pygame.time.Clock()
+
+#variable to stop multi bounces
+timeElapsed = 0
+
+##level modifier
+level = 1
+
+##Set FPS
+FPS = 30
+
+##color variables
+WHITE = (255,255,255)
+GREEN = (0,255,0)
+RED = (255,0,0)
+BLACK = (0,0,0)
+BLUE = (0, 0, 255)
+
+
+class Paddle(pygame.sprite.Sprite):
+    ##Create class for basic character paddle
+    def __init__(self,x, y, speed):
+        pygame.sprite.Sprite.__init__(self)
+
+        #load sprite for class
+        self.image = pygame.image.load('paddle20.png')
+
+        #get rect based on sprite
+        self.rect = self.image.get_rect()
+        #define variables
+        self.speed = speed
+        self.x = x
+        self.y = y
+
+        #create 2 rectangles for player to control bounce a little more, basically cut in half the normal hitbox
+        self.topRect = self.rect.inflate(0, -50)
+        self.botRect = self.rect.inflate(0, -50)
+
+
+
+    def draw(self, surface):
+        #draw image to screen at x,y
+        surface.blit(self.image, (self.x, self.y))
+
+        #set rect coordinates to match image coordinates
+        #and create offset for double hit box
+        self.rect.x = self.x
+        self.rect.y = self.y
+        self.topRect.x = self.x
+        self.topRect.y = self.y
+        self.botRect.x = self.x
+        self.botRect.y = self.y + 50
+
+        #pygame.draw.rect(win, WHITE, (self.topRect.x, self.topRect.y, self.topRect.width, self.topRect.height))
+        #pygame.draw.rect(win, RED, (self.botRect.x, self.botRect.y, self.botRect.width, self.botRect.height))
+
+
+
+    def user_keys(self):
+        #create a method for handling user input to clean things up
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_UP] and player.y > 0:
+            player.y -= player.speed
+
+        if keys[pygame.K_DOWN] and player.y < 400:
+            player.y += player.speed
+
+class lvl1Pad(pygame.sprite.Sprite):
+    ##Create class for level 1 2 sided paddles
+    def __init__(self, x, y, health):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = pygame.image.load('l1pad.png')
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.health = health
+
+        #rear killbox and offset to make it not hit in front
+        self.killBox = self.rect.inflate(-13, 0)
+        self.offset = 13
+
+
+    def draw(self, surface):
+        if self.health > 0:
+            # draw image to screen at x,y
+            surface.blit(self.image, (self.x, self.y))
+            self.rect.x = self.x
+            self.rect.y = self.y
+
+            #line up the killbox
+            self.killBox.center = self.rect.center
+            self.killBox.left = self.rect.left + self.offset
+
+            if self.killBox.colliderect(ball.rect):
+                self.health = 0
+        else:
+            pass
+
+class Ball(pygame.sprite.Sprite):
+    ##Create class for basic character paddle
+    def __init__(self, x, y, speed):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('ball20.png')
+
+        self.rect = self.image.get_rect()
+        self.speed = speed
+        self.speedx = 0
+        self.speedy = 0
+        self.x = x
+        self.y = y
+        self.rect.x = self.x
+        self.rect.y = self.y
+        #variables to manage bouncing
+        self.facing = 1
+        self.bounce = 1
+
+    def draw(self, surface):
+        #draw image to screen at x,y
+        surface.blit(self.image, (self.x, self.y))
+
+        #pygame.draw.rect(win, GREEN, (self.rect.x, self.rect.y, self.rect.width, self.rect.height))
+
+    def move(self):
+        #give ball random speed and direction to start with
+        if self.speedy == 0 and self.speedx == 0:
+            self.speedy = self.speed/random.randint(1,2)
+            self.speedx = self.speed
+
+        #bounce off top and bottom
+        if self.y <= 0 or self.y >= screenHeight - 20:
+            self.speedy = self.speedy*-1
+
+        #bounce off right side
+        if self.x >= screenWidth - 20:
+            self.speedx = -self.speedx
+
+        #determine which way ball is going, if facing is 1 ball is going down, 0 for up
+        if self.speedy > 0:
+            self.facing = 1
+        else:
+            self.facing = 0
+
+        #move ball and adjust rect
+        self.x += self.speedx
+        self.y += self.speedy
+        #this used to be setting equal to self x and y. trying to move with ball to see if that helps collisions
+        self.rect.x += self.speedx
+        self.rect.y += self.speedy
+
+
+    def collide(self):
+        if self.bounce > 0:
+
+            #collide with top half of player paddle and change to moving upwards
+            if self.rect.colliderect(player.topRect):
+                self.speedx = -self.speedx
+
+                if self.facing > 0:
+                    self.speedy = -self.speedy
+
+            # collide with bot half of player paddle and change to moving downwards
+            if self.rect.colliderect(player.botRect):
+                self.speedx = -self.speedx
+
+                if self.facing == 0:
+                    self.speedy = -self.speedy
+
+            #collide with level 1 walls
+            elif self.rect.colliderect(topWall.rect) and topWall.health > 0:
+                self.speedx = -self.speedx
+
+            elif self.rect.colliderect(botWall.rect) and botWall.health > 0:
+                self.speedx = -self.speedx
+
+            #set bounce to 0 so it wont multi bounce
+            self.bounce = 0
+
+        elif timeElapsed > 6:
+            self.bounce = 1
+
+
+
+
+#create player
+player = Paddle(50, 200, 10)
+
+ball = Ball(500, 250, 15)
+
+topWall = lvl1Pad(900, 100, 1)
+botWall = lvl1Pad(900, 300, 1)
+
+player.x = 100
+##the game's main loop
+run = True
+while run:
+    ##check for input
+    for event in pygame.event.get():
+        ##quit if window's x is pressed
+        if event.type == pygame.QUIT:
+            run = False
+
+    if level == 1 and (topWall.health >0 or botWall.health > 0):
+        ball.collide()
+        player.draw(win)
+        ball.draw(win)
+        topWall.draw(win)
+        botWall.draw(win)
+        player.user_keys()
+        ball.move()
+
+        #update the screen and fill in blank spaces with black
+        pygame.display.update()
+        win.fill(BLACK)
+
+        #set clock to FPS - specified above
+        clock.tick(FPS)
+
+    if ball.bounce == 0:
+        timeElapsed += 1
+
+
+##if run set to false, loop will end and execute quit code
+pygame.quit()
